@@ -26,9 +26,11 @@ const testimonialsFallback = [
 const tickerItems = ['Butter Cookies','Semprit Coklat','Nastar Keju','Kastengel','Corn Flakes','Choc Chip','Putri Salju','Lidah Kucing'];
 
 const MAPS_URL = 'https://maps.app.goo.gl/g14P9tZBQfxQj4AA7';
+const API = 'https://azmata-backend-production.up.railway.app/api';
+const WA_NUMBER = '6287846146746';
 
 const kontak = [
-  { icon: <Phone  size={18} style={{ color: '#2d5a3d' }} />, label: 'WhatsApp', val: '+62 878-4614-6746', sub: 'Senin–Sabtu, 08.00–17.00 WIB', isWa: true },
+  { icon: <Phone  size={18} style={{ color: '#2d5a3d' }} />, label: 'WhatsApp', val: '+62 878-4614-6746', sub: 'Senin–Sabtu, 08.00–17.00 WIB' },
   { icon: <Mail   size={18} style={{ color: '#2d5a3d' }} />, label: 'Email',    val: 'hello@azmatacookies.com', sub: 'Balas dalam 1x24 jam' },
   { icon: <MapPin size={18} style={{ color: '#2d5a3d' }} />, label: 'Lokasi',   val: 'Pasuruan, Jawa Timur',    sub: 'Pengiriman ke seluruh Indonesia', isMap: true },
 ];
@@ -39,9 +41,8 @@ const getMainImage = (p) => {
   return img ? img : null;
 };
 
-// Format angka stat: >= 1000 → "1.2rb+", >= 100 → "100+", else tampil apa adanya + "+"
 const formatStat = (n) => {
-  if (n === null || n === undefined) return null; // null = masih loading
+  if (n === null || n === undefined) return null;
   if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'rb+';
   if (n >= 10)   return n + '+';
   return String(n);
@@ -55,7 +56,10 @@ const LandingPage = () => {
   const [loadingTestim, setLoadingTestim] = useState(true);
   const [activeStep, setActiveStep]       = useState(0);
 
-  // Stats real dari /api/stats
+  const [contactName, setContactName]   = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactMsg, setContactMsg]     = useState('');
+
   const [stats, setStats] = useState({
     orders_completed: null,
     products_total:   null,
@@ -63,14 +67,14 @@ const LandingPage = () => {
   });
 
   useEffect(() => {
-    fetch('https://azmata-backend-production.up.railway.app/api/stats')
+    fetch(`${API}/stats`)
       .then(r => r.json())
       .then(data => setStats(data))
-      .catch(() => {}); // tetap null jika gagal
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    fetch('https://azmata-backend-production.up.railway.app/api/products')
+    fetch(`${API}/products`)
       .then(r => r.json())
       .then(data => {
         const list = Array.isArray(data) ? data : (data.data ?? []);
@@ -82,7 +86,7 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    fetch('https://azmata-backend-production.up.railway.app/api/reviews/top')
+    fetch(`${API}/reviews/top`)
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(data => {
         if (!Array.isArray(data) || data.length === 0) {
@@ -104,6 +108,11 @@ const LandingPage = () => {
     e.preventDefault();
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleSendWa = () => {
+    const text = `Halo, saya ${contactName || 'pelanggan'} (${contactPhone || '-'}).\n\n${contactMsg || 'Saya ingin bertanya tentang produk Azmata Cookies.'}`;
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   const ff         = { serif: "'Playfair Display',serif", sans: "'DM Sans',sans-serif" };
@@ -200,7 +209,7 @@ const LandingPage = () => {
               </Link>
             </div>
 
-            {/* ── STAT NUMBERS (real data) ── */}
+            {/* ── STAT NUMBERS ── */}
             <div style={{ display: 'flex', gap: 36, paddingTop: 28, borderTop: `1px solid ${border}` }}>
               {statRows.map(({ val, label }) => (
                 <div key={label}>
@@ -214,7 +223,7 @@ const LandingPage = () => {
             </div>
           </div>
 
-          {/* Hero card — dinamis */}
+          {/* Hero card */}
           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
             <div style={{ width: '100%', maxWidth: 280, border: `1px solid ${border}`, borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
               <div style={{ height: 180, background: greenLight, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
@@ -501,14 +510,40 @@ const LandingPage = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Form WA */}
               <div style={{ background: cream, borderRadius: 20, padding: 28, border: `1px solid ${border}` }}>
                 <p style={{ fontFamily: ff.sans, fontSize: 14, fontWeight: 600, color: '#1e1a14', margin: '0 0 20px' }}>Kirim pesan langsung</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {[['text','Nama kamu'],['text','Nomor WhatsApp']].map(([type, ph]) => (
-                    <input key={ph} type={type} placeholder={ph} className="lp-contact-input" style={{ width: '100%', height: 42, padding: '0 14px', fontFamily: ff.sans, fontSize: 13, border: `1.5px solid ${border}`, borderRadius: 10, background: '#fff', outline: 'none', color: '#1e1a14', transition: 'all 0.15s', boxSizing: 'border-box' }} />
-                  ))}
-                  <textarea placeholder="Pesan atau pertanyaanmu..." rows={4} className="lp-contact-input" style={{ width: '100%', padding: '12px 14px', fontFamily: ff.sans, fontSize: 13, border: `1.5px solid ${border}`, borderRadius: 10, background: '#fff', outline: 'none', color: '#1e1a14', resize: 'none', transition: 'all 0.15s', boxSizing: 'border-box' }} />
-                  <button className="lp-btn-solid" onClick={() => window.open('https://wa.me/6287846146746', '_blank')} style={{ width: '100%', height: 44, background: green, color: '#fff', fontFamily: ff.sans, fontSize: 13, fontWeight: 500, border: 'none', borderRadius: 10, cursor: 'pointer', transition: 'background 0.15s' }}>
+                  <input
+                    type="text"
+                    placeholder="Nama kamu"
+                    className="lp-contact-input"
+                    value={contactName}
+                    onChange={e => setContactName(e.target.value)}
+                    style={{ width: '100%', height: 42, padding: '0 14px', fontFamily: ff.sans, fontSize: 13, border: `1.5px solid ${border}`, borderRadius: 10, background: '#fff', outline: 'none', color: '#1e1a14', transition: 'all 0.15s', boxSizing: 'border-box' }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Nomor WhatsApp"
+                    className="lp-contact-input"
+                    value={contactPhone}
+                    onChange={e => setContactPhone(e.target.value)}
+                    style={{ width: '100%', height: 42, padding: '0 14px', fontFamily: ff.sans, fontSize: 13, border: `1.5px solid ${border}`, borderRadius: 10, background: '#fff', outline: 'none', color: '#1e1a14', transition: 'all 0.15s', boxSizing: 'border-box' }}
+                  />
+                  <textarea
+                    placeholder="Pesan atau pertanyaanmu..."
+                    rows={4}
+                    className="lp-contact-input"
+                    value={contactMsg}
+                    onChange={e => setContactMsg(e.target.value)}
+                    style={{ width: '100%', padding: '12px 14px', fontFamily: ff.sans, fontSize: 13, border: `1.5px solid ${border}`, borderRadius: 10, background: '#fff', outline: 'none', color: '#1e1a14', resize: 'none', transition: 'all 0.15s', boxSizing: 'border-box' }}
+                  />
+                  <button
+                    className="lp-btn-solid"
+                    onClick={handleSendWa}
+                    style={{ width: '100%', height: 44, background: green, color: '#fff', fontFamily: ff.sans, fontSize: 13, fontWeight: 500, border: 'none', borderRadius: 10, cursor: 'pointer', transition: 'background 0.15s' }}
+                  >
                     Kirim via WhatsApp
                   </button>
                 </div>
