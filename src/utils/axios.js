@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'https://azmata-backend-production.up.railway.app/api',
 });
 
 // Auto attach token ke setiap request
