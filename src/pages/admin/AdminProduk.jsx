@@ -195,7 +195,6 @@ const AdminProduk = () => {
   const [deleteId, setDeleteId]     = useState(null);
   const [highlightId, setHighlightId] = useState(null);
   const [showLogout, setShowLogout] = useState(false);
-  const fileRefs = SLOTS.map(() => useRef());
 
   const fetchAll = async () => {
     setLoading(true);
@@ -510,47 +509,75 @@ const AdminProduk = () => {
             <form onSubmit={handleSubmit} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
               <Field label="Foto produk (maks. 4 foto)">
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
-                  {SLOTS.map(i => (
-                    <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <div
-                        onClick={() => fileRefs[i].current?.click()}
-                        style={{
-                          aspectRatio: '1/1', border: '2px dashed #ede9e0', borderRadius: 12,
-                          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                          cursor: 'pointer', overflow: 'hidden', background: '#faf9f6',
-                          position: 'relative', transition: 'border-color 0.15s',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.borderColor = '#4a9e6b'}
-                        onMouseLeave={e => e.currentTarget.style.borderColor = '#ede9e0'}
-                      >
-                        {previews[i] ? (
-                          <img src={previews[i]} alt={`foto ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <>
-                            <Upload size={15} color="#c5bfb4" style={{ marginBottom: 4 }} />
-                            <span style={{ fontSize: 10, color: '#b5a99a' }}>Foto {i + 1}</span>
-                          </>
-                        )}
-                        {i === 0 && (
-                          <span style={{
-                            position: 'absolute', top: 5, left: 5,
-                            fontSize: 9, background: '#2d5a3d', color: '#fff',
-                            padding: '2px 6px', borderRadius: 4, fontWeight: 600,
-                          }}>Utama</span>
-                        )}
-                      </div>
-                      {previews[i] && (
-                        <button type="button" onClick={() => removeImage(i)} style={{
-                          fontSize: 10, color: '#e74c3c', background: 'none',
-                          border: 'none', cursor: 'pointer', textAlign: 'center',
-                          fontFamily: "'DM Sans', sans-serif",
-                        }}>Hapus</button>
+              <div
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.multiple = true;
+                  input.onchange = (e) => {
+                    const files = Array.from(e.target.files).slice(0, 4);
+                    const newImages = [...form.images];
+                    const newPreviews = [...previews];
+                    files.forEach((file, i) => {
+                      // isi slot kosong duluan
+                      const emptySlot = newImages.findIndex((img, idx) => !img && !newPreviews[idx]);
+                      const slot = emptySlot !== -1 ? emptySlot : i;
+                      if (slot < 4) {
+                        newImages[slot] = file;
+                        newPreviews[slot] = URL.createObjectURL(file);
+                      }
+                    });
+                    setForm(f => ({ ...f, images: newImages }));
+                    setPreviews(newPreviews);
+                  };
+                  input.click();
+                }}
+                style={{
+                  border: '2px dashed #ede9e0', borderRadius: 12,
+                  padding: '14px', cursor: 'pointer', background: '#faf9f6',
+                  marginBottom: 10, display: 'flex', alignItems: 'center',
+                  gap: 10, transition: 'border-color 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = '#4a9e6b'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = '#ede9e0'}
+              >
+                <Upload size={16} color="#4a9e6b" />
+                <span style={{ fontSize: 13, color: '#8a7f6f' }}>
+                  Klik untuk pilih foto — bisa sekaligus beberapa (maks. 4)
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
+                {SLOTS.map(i => (
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{
+                      aspectRatio: '1/1', border: '1.5px solid #ede9e0', borderRadius: 12,
+                      overflow: 'hidden', background: '#faf9f6', position: 'relative',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      {previews[i] ? (
+                        <img src={previews[i]} alt={`foto ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: 11, color: '#c5bfb4' }}>Foto {i + 1}</span>
                       )}
-                      <input ref={fileRefs[i]} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFile(e, i)} />
+                      {i === 0 && (
+                        <span style={{
+                          position: 'absolute', top: 5, left: 5,
+                          fontSize: 9, background: '#2d5a3d', color: '#fff',
+                          padding: '2px 6px', borderRadius: 4, fontWeight: 600,
+                        }}>Utama</span>
+                      )}
                     </div>
-                  ))}
-                </div>
+                    {previews[i] && (
+                      <button type="button" onClick={() => removeImage(i)} style={{
+                        fontSize: 10, color: '#e74c3c', background: 'none',
+                        border: 'none', cursor: 'pointer', textAlign: 'center',
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}>Hapus</button>
+                    )}
+                  </div>
+                ))}
+              </div>
               </Field>
 
               <Field label="Nama produk" required>
