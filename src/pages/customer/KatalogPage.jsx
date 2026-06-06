@@ -95,7 +95,7 @@ const KatalogPage = () => {
 
   const getImage = (product) => {
     const f = [product.image_1, product.image_2, product.image_3, product.image_4].find(f => f);
-    return f ? `/uploads/${f}` : null;
+    return f ? f : null;
   };
 
   const cartCount = cart.reduce((acc, i) => acc + i.qty, 0);

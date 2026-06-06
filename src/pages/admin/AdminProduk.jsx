@@ -13,7 +13,7 @@ import {
 const formatRp = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 const getMainImage = (p) => {
   const img = p.image_1 || p.image_2 || p.image_3 || p.image_4;
-  return img ? `/uploads/${img}` : null;
+  return img ? img : null;
 };
 
 const SLOTS = [0, 1, 2, 3];
@@ -237,10 +237,10 @@ const AdminProduk = () => {
     setEditData(p);
     setForm({ name: p.name, description: p.description || '', price: p.price, stock: p.stock, category_id: p.category_id || '', images: [null, null, null, null] });
     setPreviews([
-      p.image_1 ? `/uploads/${p.image_1}` : null,
-      p.image_2 ? `/uploads/${p.image_2}` : null,
-      p.image_3 ? `/uploads/${p.image_3}` : null,
-      p.image_4 ? `/uploads/${p.image_4}` : null,
+      p.image_1 ? p.image_1 : null,
+      p.image_2 ? p.image_2 : null,
+      p.image_3 ? p.image_3 : null,
+      p.image_4 ? p.image_4 : null,
     ]);
     setShowModal(true);
   };

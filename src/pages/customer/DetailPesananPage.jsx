@@ -490,7 +490,7 @@ const DetailPesananPage = () => {
                           return (
                             <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, background: '#faf9f6', borderRadius: 12, padding: '12px 14px' }}>
                               <div style={{ width: 48, height: 48, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg,#f0ece4,#e8e2d8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {imgFile ? <img src={`/uploads/${imgFile}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 22 }}>🍪</span>}
+                                {imgFile ? <img src={imgFile} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontSize: 22 }}>🍪</span>}
                               </div>
                               <div style={{ flex: 1 }}>
                                 <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 13, fontWeight: 600, color: '#1e1a14', margin: '0 0 2px' }}>{item.name}</p>
@@ -560,7 +560,7 @@ const DetailPesananPage = () => {
                     return (
                       <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div style={{ width: 40, height: 40, borderRadius: 10, overflow: 'hidden', flexShrink: 0, background: 'linear-gradient(135deg,#f0ece4,#e8e2d8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {imgFile ? <img src={`/uploads/${imgFile}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>🍪</span>}
+                          {imgFile ? <img src={imgFile} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>🍪</span>}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 12, fontWeight: 600, color: '#1e1a14', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</p>

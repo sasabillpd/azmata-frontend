@@ -215,7 +215,7 @@ const ProfilPage = () => {
       setProfileData(res.data);
       setLastPasswordChange(res.data.password_updated_at ? new Date(res.data.password_updated_at) : null);
       setForm({ first_name: res.data.name?.split(' ')[0] || '', last_name: res.data.name?.split(' ').slice(1).join(' ') || '', email: res.data.email || '', phone: res.data.phone || '' });
-      if (res.data.avatar) setPhoto(`/uploads/${res.data.avatar}`);
+      if (res.data.avatar) setPhoto(res.data.avatar);
     }).catch(() => {});
   }, []);
 
@@ -513,7 +513,7 @@ const ProfilPage = () => {
                                 <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                                   <div style={{ width: 52, height: 52, borderRadius: 12, background: '#f0f7f2', flexShrink: 0, overflow: 'hidden', border: `1px solid #c5dfc9`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     {imgFile
-                                      ? <img src={`/uploads/${imgFile}`} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display='none'; }} />
+                                      ? <img src={imgFile} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.style.display='none'; }} />
                                       : <span style={{ fontSize: 22 }}>🍪</span>}
                                   </div>
                                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -543,7 +543,7 @@ const ProfilPage = () => {
                               {order.refund_proof && (
                                 <div>
                                   <p style={{ fontFamily: ff.sans, fontSize: 11, color: '#9a9080', margin: '4px 0' }}>Bukti refund dari admin:</p>
-                                  <img src={`/uploads/${order.refund_proof}`} alt="Bukti refund" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', borderRadius: 8, border: '1px solid #fecaca' }} />
+                                  <img src={order.refund_proof} alt="Bukti refund" style={{ width: '100%', maxHeight: 160, objectFit: 'contain', borderRadius: 8, border: '1px solid #fecaca' }} />
                                 </div>
                               )}
                             </div>
@@ -737,7 +737,7 @@ const ProfilPage = () => {
                             <Link to={`/produk/${item.product_id}`} style={{ textDecoration: 'none' }}>
                               <div style={{ width: '100%', height: 140, borderRadius: 12, background: '#f0f7f2', marginBottom: 12, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                 {imgSrc
-                                  ? <img src={`/uploads/${imgSrc}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  ? <img src={imgSrc} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                   : <span style={{ fontSize: 40 }}>🍪</span>}
                               </div>
                             </Link>

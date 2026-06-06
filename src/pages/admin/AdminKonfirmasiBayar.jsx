@@ -561,7 +561,7 @@ const AdminKonfirmasiBayar = () => {
               <button onClick={() => setPreview(null)} style={{ border: 'none', background: '#f5f1eb', borderRadius: 8, width: 28, height: 28, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8a7f6f' }}><X size={13} /></button>
             </div>
             <div style={{ padding: 16 }}>
-              <img src={`/uploads/${preview}`} alt="Bukti" style={{ width: '100%', borderRadius: 12, maxHeight: 380, objectFit: 'contain' }} />
+              <img src={preview} alt="Bukti" style={{ width: '100%', borderRadius: 12, maxHeight: 380, objectFit: 'contain' }} />
             </div>
           </div>
         </>

@@ -83,7 +83,7 @@ const ProductDetailPage = () => {
   const images = (() => {
     if (!product) return [];
     return [product.image_1, product.image_2, product.image_3, product.image_4]
-      .filter(Boolean).map(f => `/uploads/${f}`);
+      .filter(Boolean).map(f => f);
   })();
 
   const changeImg = (dir) => setActiveImg(prev => (prev + images.length + dir) % images.length);
@@ -430,7 +430,7 @@ const ProductDetailPage = () => {
                           {/* Avatar */}
                           <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#f0f7f2', border: `1px solid #c5dfc9`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                             {r.user_avatar
-                              ? <img src={`/uploads/${r.user_avatar}`} alt={r.user_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ? <img src={r.user_avatar} alt={r.user_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               : <span style={{ fontFamily: ff.sans, fontSize: 13, fontWeight: 700, color: green }}>{r.user_name?.charAt(0).toUpperCase()}</span>}
                           </div>
                           {/* Content */}

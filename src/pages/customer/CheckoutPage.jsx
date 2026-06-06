@@ -226,7 +226,7 @@ const CheckoutPage = () => {
   const totalItems = cart.reduce((acc, i) => acc + i.qty, 0);
 
   const formatRp  = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
-  const getImage  = (item) => { const f = [item.image_1, item.image_2, item.image_3, item.image_4].find(f => f); return f ? `/uploads/${f}` : null; };
+  const getImage  = (item) => { const f = [item.image_1, item.image_2, item.image_3, item.image_4].find(f => f); return f ? f : null; };
   const formatAlamat = (addr) => {
     if (!addr) return '';
     return [addr.alamat, addr.kelurahan_name, addr.kecamatan_name, addr.kota_name || addr.kota, addr.provinsi_name, addr.kode_pos].filter(Boolean).join(', ');

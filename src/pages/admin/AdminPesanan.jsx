@@ -213,7 +213,7 @@ const DetailModal = ({ detail, loadingDetail, onClose, onChangeStatus, LOCKED_ST
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#faf9f6', borderRadius: 12 }}>
                   <div style={{ width: 38, height: 38, borderRadius: 10, background: '#edf5f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0, overflow: 'hidden' }}>
                     {item.image
-                      ? <img src={`http://localhost:8000/uploads/${item.image}`} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ? <img src={item.image} alt={item.product_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : '🍪'}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -242,7 +242,7 @@ const DetailModal = ({ detail, loadingDetail, onClose, onChangeStatus, LOCKED_ST
               <StatusBadge status={detail.payment.status} />
             </div>
             {detail.payment.proof_image && (
-              <img src={`/uploads/${detail.payment.proof_image}`} alt="Bukti transfer" style={{ width: '100%', borderRadius: 10, objectFit: 'contain', maxHeight: 200, marginTop: 8 }} />
+              <img src={detail.payment.proof_image} alt="Bukti transfer" style={{ width: '100%', borderRadius: 10, objectFit: 'contain', maxHeight: 200, marginTop: 8 }} />
             )}
           </div>
         )}

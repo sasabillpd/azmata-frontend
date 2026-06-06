@@ -55,7 +55,7 @@ const KeranjangDrawer = ({ cart, setCart, onClose }) => {
 
   const getImage = (item) => {
     const f = [item.image_1, item.image_2, item.image_3, item.image_4].find(f => f);
-    return f ? `/uploads/${f}` : null;
+    return f ? f : null;
   };
 
   return (

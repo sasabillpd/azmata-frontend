@@ -90,7 +90,7 @@ const CustomerNavbar = ({ onSearch, onCartClick, cartCount = 0 }) => {
   };
 
   const avatarUrl = user?.avatar
-    ? `/uploads/${user.avatar}`
+    ? user.avatar
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'U')}&background=2d5a3d&color=fff&size=40`;
 
   const formatRp = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');

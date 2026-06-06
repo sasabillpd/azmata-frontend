@@ -36,7 +36,7 @@ const kontak = [
 const formatRp = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 const getMainImage = (p) => {
   const img = p.image_1 || p.image_2 || p.image_3 || p.image_4;
-  return img ? `/uploads/${img}` : null;
+  return img ? img : null;
 };
 
 // Format angka stat: >= 1000 → "1.2rb+", >= 100 → "100+", else tampil apa adanya + "+"
