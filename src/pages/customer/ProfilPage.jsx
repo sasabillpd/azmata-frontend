@@ -572,17 +572,21 @@ const ProfilPage = () => {
                                 <Link to={`/pembayaran/${order.id}`} style={{ fontFamily: ff.sans, fontSize: 12, fontWeight: 500, color: '#fff', background: green, borderRadius: 10, padding: '6px 16px', textDecoration: 'none' }}>Bayar sekarang</Link>
                               )}
                               {/* PATCH: tombol batalkan dengan cek needsRefund */}
-                              {['Menunggu Pembayaran', 'Menunggu Konfirmasi'].includes(order.status) && (
-                                <button
-                                  onClick={() => {
-                                    const needsRefund = order.status === 'Menunggu Konfirmasi'
-                                      || order.payment_status === 'Menunggu';
-                                    setCancelModal({ id: order.id, reason: '', needsRefund });
-                                  }}
-                                  style={{ fontFamily: ff.sans, fontSize: 12, fontWeight: 500, color: '#dc2626', background: '#fff', border: '1.5px solid #fca5a5', borderRadius: 10, padding: '6px 16px', cursor: 'pointer' }}>
-                                  Batalkan
-                                </button>
-                              )}
+                              {order.status === 'Menunggu Pembayaran' && (
+                              <button
+                                onClick={() => {
+                                  setCancelModal({ id: order.id, reason: '', needsRefund: false });
+                                }}
+                                style={{ fontFamily: ff.sans, fontSize: 12, fontWeight: 500, color: '#dc2626', background: '#fff', border: '1.5px solid #fca5a5', borderRadius: 10, padding: '6px 16px', cursor: 'pointer' }}>
+                                Batalkan
+                              </button>
+                            )}
+
+                            {order.status === 'Menunggu Konfirmasi' && (
+                              <div style={{ fontFamily: ff.sans, fontSize: 11, color: '#9a9080', fontStyle: 'italic' }}>
+                                Tidak dapat dibatalkan
+                              </div>
+                            )}
                             </div>
                           </div>
                         </div>
