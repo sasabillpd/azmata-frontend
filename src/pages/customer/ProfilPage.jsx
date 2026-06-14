@@ -853,8 +853,8 @@ const ProfilPage = () => {
                       toast.success('Pesanan dikonfirmasi selesai!');
                       setConfirmModal(null);
                       // refresh orders
-                      const res = await api.get('/orders/my');
-                      setOrders(res.data);
+                      const res = await api.get('/orders/my-orders');
+                      setOrders(Array.isArray(res.data) ? res.data : res.data?.data ?? []);
                     } catch {
                       toast.error('Gagal mengkonfirmasi pesanan');
                     }
