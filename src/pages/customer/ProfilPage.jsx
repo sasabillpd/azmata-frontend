@@ -185,7 +185,8 @@ const ProfilPage = () => {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [ordersFetched, setOrdersFetched] = useState(false);
   const [orderFilter, setOrderFilter] = useState('Semua');
-  const [cancelModal, setCancelModal] = useState(null); // { id, reason, needsRefund }
+  const [cancelModal, setCancelModal] = useState(null);
+  const [confirmModal, setConfirmModal] = useState(null); 
   const [cancelingId, setCancelingId] = useState(null);
 
   // ALAMAT
@@ -582,6 +583,19 @@ const ProfilPage = () => {
                               </button>
                             )}
 
+                            {order.status === 'Dikirim' && (
+                              <button
+                                onClick={() => setConfirmModal({ id: order.id })}
+                                style={{
+                                  fontFamily: ff.sans, fontSize: 12, fontWeight: 500,
+                                  color: '#fff', background: green,
+                                  border: 'none', borderRadius: 10,
+                                  padding: '6px 16px', cursor: 'pointer'
+                                }}>
+                                Konfirmasi Terima Barang
+                              </button>
+                            )}
+
                             {order.status === 'Menunggu Konfirmasi' && (
                               <div style={{ fontFamily: ff.sans, fontSize: 11, color: '#9a9080', fontStyle: 'italic' }}>
                                 Tidak dapat dibatalkan
@@ -814,6 +828,40 @@ const ProfilPage = () => {
                     {cancelingId ? 'Membatalkan...' : 'Ya, batalkan'}
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal konfirmasi terima barang */}
+        {confirmModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 28, maxWidth: 400, width: '100%', boxShadow: '0 8px 40px rgba(0,0,0,0.15)' }}>
+              <p style={{ fontFamily: ff.serif, fontSize: 17, fontWeight: 600, color: '#1e1a14', margin: '0 0 10px' }}>Konfirmasi Terima Barang</p>
+              <p style={{ fontFamily: ff.sans, fontSize: 13, color: '#6b6357', margin: '0 0 24px', lineHeight: 1.6 }}>
+                Pastikan kamu sudah menerima barang dalam kondisi baik. Setelah dikonfirmasi, pesanan tidak bisa dibatalkan.
+              </p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setConfirmModal(null)}
+                  style={{ flex: 1, height: 42, borderRadius: 10, border: '1.5px solid #e0ddd6', background: '#fff', fontSize: 13, color: '#6b6357', cursor: 'pointer', fontFamily: ff.sans }}>
+                  Batal
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await api.patch(`/orders/${confirmModal.id}/confirm-received`);
+                      toast.success('Pesanan dikonfirmasi selesai!');
+                      setConfirmModal(null);
+                      // refresh orders
+                      const res = await api.get('/orders/my');
+                      setOrders(res.data);
+                    } catch {
+                      toast.error('Gagal mengkonfirmasi pesanan');
+                    }
+                  }}
+                  style={{ flex: 1, height: 42, borderRadius: 10, border: 'none', background: green, color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: ff.sans }}>
+                  Ya, sudah diterima
+                </button>
               </div>
             </div>
           </div>
