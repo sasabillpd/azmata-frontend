@@ -24,9 +24,7 @@ const STATUS_STYLE = {
 
 const KOMPLAIN_STATUS_STYLE = {
   'Menunggu': { bg: '#fef3c7', color: '#b45309' },
-  'Diproses': { bg: '#dbeafe', color: '#1d4ed8' },
   'Selesai':  { bg: '#d1fae5', color: '#065f46' },
-  'Ditolak':  { bg: '#fee2e2', color: '#b91c1c' },
 };
 
 const KomplainBadge = ({ status }) => {
@@ -433,6 +431,12 @@ const UbahStatusModal = ({ selected, newStatus, setNewStatus, resiForm, setResiF
 };
 
 /* ══ MODAL TANGGAPI KOMPLAIN ══ */
+const KOMPLAIN_ACTIONS = [
+  { key: 'refund',      label: 'Refund',       desc: 'Pesanan dibatalkan & refund diproses ke rekening customer', color: '#dc2626', bg: '#fff5f5', border: '#fecaca' },
+  { key: 'kirim_ulang', label: 'Kirim Ulang',  desc: 'Barang pengganti akan dikirim ulang ke customer',            color: '#7c3aed', bg: '#f5f3ff', border: '#ddd6fe' },
+  { key: 'tolak',       label: 'Tolak',        desc: 'Komplain ditolak, pesanan tetap berjalan seperti biasa',     color: '#6b7280', bg: '#f9fafb', border: '#e5e7eb' },
+];
+
 const KomplainModal = ({ komplain, form, setForm, resolving, onConfirm, onCancel }) => (
   <>
     <div onClick={onCancel} style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(30,26,20,0.4)', backdropFilter: 'blur(4px)', animation: 'fadeIn 0.18s ease' }} />
@@ -456,23 +460,29 @@ const KomplainModal = ({ komplain, form, setForm, resolving, onConfirm, onCancel
         <img src={komplain.komplain_foto} alt="Bukti komplain" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 10, border: '1px solid #ede9e0', marginBottom: 16 }} />
       )}
 
-      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#5a5346', marginBottom: 6 }}>Update status komplain</label>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
-        {['Diproses', 'Selesai', 'Ditolak'].map(s => {
-          const active = form.status === s;
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#5a5346', marginBottom: 8 }}>Pilih tindakan</label>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+        {KOMPLAIN_ACTIONS.map(a => {
+          const active = form.action === a.key;
           return (
-            <button key={s} onClick={() => setForm(f => ({ ...f, status: s }))}
-              style={{ padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${active ? '#2d5a3d' : '#ede9e0'}`, background: active ? '#2d5a3d' : '#fff', color: active ? '#fff' : '#5a5346', fontSize: 12, fontWeight: active ? 600 : 400, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
-              {s}
-            </button>
+            <div key={a.key} onClick={() => setForm(f => ({ ...f, action: a.key }))}
+              style={{ padding: '12px 14px', borderRadius: 12, cursor: 'pointer', border: `1.5px solid ${active ? a.color : '#ede9e0'}`, background: active ? a.bg : '#fff', transition: 'all 0.14s' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 3 }}>
+                <div style={{ width: 15, height: 15, borderRadius: '50%', border: `2px solid ${active ? a.color : '#d1c9bc'}`, background: active ? a.color : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {active && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff' }} />}
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 600, color: active ? a.color : '#1e1a14' }}>{a.label}</span>
+              </div>
+              <p style={{ fontSize: 11, color: '#8a7f6f', margin: '0 0 0 25px' }}>{a.desc}</p>
+            </div>
           );
         })}
       </div>
 
-      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#5a5346', marginBottom: 6 }}>Tanggapan untuk pelanggan</label>
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#5a5346', marginBottom: 6 }}>Catatan untuk pelanggan (opsional)</label>
       <textarea
-        value={form.response}
-        onChange={e => setForm(f => ({ ...f, response: e.target.value }))}
+        value={form.catatan}
+        onChange={e => setForm(f => ({ ...f, catatan: e.target.value }))}
         placeholder="Contoh: Mohon maaf atas ketidaknyamanannya, kami akan kirim ulang barang..."
         rows={4}
         style={{ width: '100%', padding: '10px 12px', fontSize: 13, border: '1.5px solid #ede9e0', borderRadius: 10, outline: 'none', fontFamily: "'DM Sans', sans-serif", color: '#1e1a14', resize: 'vertical', marginBottom: 20, boxSizing: 'border-box' }}
@@ -480,9 +490,9 @@ const KomplainModal = ({ komplain, form, setForm, resolving, onConfirm, onCancel
 
       <div style={{ display: 'flex', gap: 10 }}>
         <button onClick={onCancel} style={{ flex: 1, padding: '11px 0', borderRadius: 12, border: '1.5px solid #ede9e0', background: '#fff', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: '#5a5346', cursor: 'pointer' }}>Batal</button>
-        <button onClick={onConfirm} disabled={resolving}
-          style={{ flex: 1, padding: '11px 0', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#2d5a3d,#4a9e6b)', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#fff', cursor: resolving ? 'not-allowed' : 'pointer', opacity: resolving ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {resolving ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 0.7s linear infinite' }} /> : 'Simpan Tanggapan'}
+        <button onClick={onConfirm} disabled={resolving || !form.action}
+          style={{ flex: 1, padding: '11px 0', borderRadius: 12, border: 'none', background: !form.action ? '#e5e7eb' : 'linear-gradient(135deg,#2d5a3d,#4a9e6b)', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: !form.action ? '#9ca3af' : '#fff', cursor: resolving || !form.action ? 'not-allowed' : 'pointer', opacity: resolving ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {resolving ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 0.7s linear infinite' }} /> : 'Simpan Tindakan'}
         </button>
       </div>
     </div>
@@ -528,7 +538,7 @@ const AdminPesanan = () => {
   const [komplainList, setKomplainList]   = useState([]);
   const [loadingKomplain, setLoadingKomplain] = useState(false);
   const [selectedKomplain, setSelectedKomplain] = useState(null);
-  const [resolveForm, setResolveForm]     = useState({ status: 'Diproses', response: '' });
+  const [resolveForm, setResolveForm]     = useState({ action: '', catatan: '' });
   const [resolving, setResolving]         = useState(false);
 
   const fetchOrders = async () => {
@@ -568,22 +578,23 @@ const AdminPesanan = () => {
 
   const openKomplain = (k) => {
     setSelectedKomplain(k);
-    setResolveForm({ status: k.komplain_status === 'Menunggu' ? 'Diproses' : (k.komplain_status || 'Diproses'), response: k.admin_response || '' });
+    setResolveForm({ action: '', catatan: '' });
   };
 
   const handleResolveKomplain = async () => {
-    if (!selectedKomplain) return;
+    if (!selectedKomplain || !resolveForm.action) return;
     setResolving(true);
     try {
       await api.put(`/orders/${selectedKomplain.id}/komplain/resolve`, {
-        komplain_status: resolveForm.status,
-        admin_response: resolveForm.response,
+        action: resolveForm.action,
+        catatan: resolveForm.catatan,
       });
-      toast.success('Tanggapan komplain berhasil disimpan');
+      toast.success('Komplain berhasil ditindaklanjuti');
       setSelectedKomplain(null);
       fetchKomplain();
+      fetchOrders();
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Gagal menyimpan tanggapan');
+      toast.error(err.response?.data?.message || 'Gagal menindaklanjuti komplain');
     } finally {
       setResolving(false);
     }
