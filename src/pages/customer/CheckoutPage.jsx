@@ -281,11 +281,12 @@ const CheckoutPage = () => {
         shipping_name:    addr.nama,
         shipping_phone:   addr.telepon,
         shipping_address: formatAlamat(addr),
+        shipping_province: addr.provinsi_name,
         shipping_city:    addr.kota_name || addr.kota,
         shipping_zip:     addr.kode_pos || '',
         note:             addr.catatan || '',
-        shipping_cost:    ONGKIR,                         // ← ongkir sesuai alamat
-        voucher_code:     voucherApplied?.kode || null,   // ← kode voucher
+        shipping_cost:    ONGKIR,
+        voucher_code:     voucherApplied?.kode || null,
       });
       if (fromDrawer) {
         const checkedIds = new Set(cart.map(i => i.id));
