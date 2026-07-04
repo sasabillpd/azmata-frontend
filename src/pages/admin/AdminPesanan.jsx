@@ -7,6 +7,7 @@ import {
   Search, Ban, LayoutDashboard, Package,
   ClipboardList, BarChart2, LogOut, CreditCard,
   Users2, X, ChevronRight, Ticket, Truck, ExternalLink,
+  MessageSquareWarning,
 } from 'lucide-react';
 
 /* ── helpers ── */
@@ -19,6 +20,20 @@ const STATUS_STYLE = {
   'Dikirim':             { bg: '#ede9fe', color: '#6d28d9' },
   'Selesai':             { bg: '#d1fae5', color: '#065f46' },
   'Dibatalkan':          { bg: '#fee2e2', color: '#b91c1c' },
+};
+
+const KOMPLAIN_STATUS_STYLE = {
+  'Menunggu': { bg: '#fef3c7', color: '#b45309' },
+  'Diproses': { bg: '#dbeafe', color: '#1d4ed8' },
+  'Selesai':  { bg: '#d1fae5', color: '#065f46' },
+  'Ditolak':  { bg: '#fee2e2', color: '#b91c1c' },
+};
+
+const KomplainBadge = ({ status }) => {
+  const s = KOMPLAIN_STATUS_STYLE[status] || { bg: '#f3f4f6', color: '#6b7280' };
+  return (
+    <span style={{ fontSize: 11, fontWeight: 500, padding: '4px 11px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' }}>{status}</span>
+  );
 };
 
 const STATUS_LIST = [
@@ -117,6 +132,58 @@ const StatusBadge = ({ status }) => {
     <span style={{ fontSize: 11, fontWeight: 500, padding: '4px 11px', borderRadius: 20, background: s.bg, color: s.color, whiteSpace: 'nowrap' }}>{status}</span>
   );
 };
+
+/* ══ TABEL KOMPLAIN ══ */
+const KomplainTable = ({ list, loading, onOpen }) => (
+  <div style={{ overflowX: 'auto' }}>
+    <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: "'DM Sans', sans-serif" }}>
+      <thead>
+        <tr style={{ borderBottom: '1px solid #f5f1eb' }}>
+          {['No. Pesanan', 'Pelanggan', 'Alasan', 'Status', 'Tanggal', 'Aksi'].map(h => (
+            <th key={h} style={{ textAlign: 'left', padding: '10px 20px', fontSize: 10, color: '#b5a99a', fontWeight: 600, letterSpacing: '0.6px', textTransform: 'uppercase' }}>{h}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {loading ? (
+          [...Array(4)].map((_, i) => (
+            <tr key={i} style={{ borderBottom: '1px solid #f9f7f4' }}>
+              {[140, 180, 160, 100, 90, 70].map((w, j) => (
+                <td key={j} style={{ padding: '14px 20px' }}>
+                  <div style={{ height: 10, background: '#f0ede8', borderRadius: 6, width: w }} />
+                </td>
+              ))}
+            </tr>
+          ))
+        ) : list.length === 0 ? (
+          <tr>
+            <td colSpan={6} style={{ padding: '56px', textAlign: 'center', fontSize: 13, color: '#b5a99a' }}>
+              Belum ada komplain masuk
+            </td>
+          </tr>
+        ) : list.map(k => (
+          <tr key={k.id} className="orders-row" style={{ borderBottom: '1px solid #f9f7f4' }}>
+            <td style={{ padding: '13px 20px', fontSize: 12, color: '#b5a99a', fontFamily: 'monospace' }}>
+              {k.invoice_number || `#${String(k.id).padStart(4, '0')}`}
+            </td>
+            <td style={{ padding: '13px 20px' }}>
+              <p style={{ fontSize: 13, fontWeight: 500, color: '#1e1a14', margin: '0 0 2px' }}>{k.customer_name}</p>
+              <p style={{ fontSize: 11, color: '#b5a99a', margin: 0 }}>{k.email}</p>
+            </td>
+            <td style={{ padding: '13px 20px', fontSize: 12, color: '#3a3530', maxWidth: 200 }}>{k.komplain_reason}</td>
+            <td style={{ padding: '13px 20px' }}><KomplainBadge status={k.komplain_status || 'Menunggu'} /></td>
+            <td style={{ padding: '13px 20px', fontSize: 12, color: '#b5a99a' }}>
+              {k.komplain_created_at ? new Date(k.komplain_created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+            </td>
+            <td style={{ padding: '13px 20px' }}>
+              <button onClick={() => onOpen(k)} style={{ border: 'none', background: 'none', padding: 0, fontSize: 12, color: '#2d5a3d', fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Tanggapi</button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
 
 /* ══ DETAIL MODAL ══ */
 const DetailModal = ({ detail, loadingDetail, onClose, onChangeStatus, LOCKED_STATUSES }) => (
@@ -365,6 +432,63 @@ const UbahStatusModal = ({ selected, newStatus, setNewStatus, resiForm, setResiF
   );
 };
 
+/* ══ MODAL TANGGAPI KOMPLAIN ══ */
+const KomplainModal = ({ komplain, form, setForm, resolving, onConfirm, onCancel }) => (
+  <>
+    <div onClick={onCancel} style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(30,26,20,0.4)', backdropFilter: 'blur(4px)', animation: 'fadeIn 0.18s ease' }} />
+    <div style={{ position: 'fixed', top: '50%', left: '50%', zIndex: 51, transform: 'translate(-50%,-50%)', background: '#fff', borderRadius: 20, width: '100%', maxWidth: 460, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(30,26,20,0.18)', animation: 'slideUp 0.22s cubic-bezier(0.34,1.56,0.64,1)', fontFamily: "'DM Sans', sans-serif", padding: '28px 28px 24px' }}>
+      <button onClick={onCancel} style={{ position: 'absolute', top: 16, right: 16, border: 'none', background: '#f5f1eb', borderRadius: 8, width: 30, height: 30, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8a7f6f' }}><X size={14} /></button>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+        <MessageSquareWarning size={18} color="#b45309" />
+        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 17, fontWeight: 700, color: '#1e1a14', margin: 0 }}>Tanggapi Komplain</p>
+      </div>
+      <p style={{ fontSize: 12, color: '#b5a99a', margin: '0 0 18px' }}>
+        {komplain.invoice_number || `#${String(komplain.id).padStart(4, '0')}`} · {komplain.customer_name}
+      </p>
+
+      <div style={{ background: '#fff8ee', border: '1px solid #fde68a', borderRadius: 14, padding: '14px 16px', marginBottom: 16 }}>
+        <p style={{ fontSize: 11, fontWeight: 600, color: '#b45309', margin: '0 0 4px' }}>Alasan komplain</p>
+        <p style={{ fontSize: 13, color: '#92400e', margin: 0 }}>{komplain.komplain_reason}</p>
+      </div>
+
+      {komplain.komplain_foto && (
+        <img src={komplain.komplain_foto} alt="Bukti komplain" style={{ width: '100%', maxHeight: 200, objectFit: 'contain', borderRadius: 10, border: '1px solid #ede9e0', marginBottom: 16 }} />
+      )}
+
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#5a5346', marginBottom: 6 }}>Update status komplain</label>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
+        {['Diproses', 'Selesai', 'Ditolak'].map(s => {
+          const active = form.status === s;
+          return (
+            <button key={s} onClick={() => setForm(f => ({ ...f, status: s }))}
+              style={{ padding: '6px 14px', borderRadius: 20, border: `1.5px solid ${active ? '#2d5a3d' : '#ede9e0'}`, background: active ? '#2d5a3d' : '#fff', color: active ? '#fff' : '#5a5346', fontSize: 12, fontWeight: active ? 600 : 400, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+              {s}
+            </button>
+          );
+        })}
+      </div>
+
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: '#5a5346', marginBottom: 6 }}>Tanggapan untuk pelanggan</label>
+      <textarea
+        value={form.response}
+        onChange={e => setForm(f => ({ ...f, response: e.target.value }))}
+        placeholder="Contoh: Mohon maaf atas ketidaknyamanannya, kami akan kirim ulang barang..."
+        rows={4}
+        style={{ width: '100%', padding: '10px 12px', fontSize: 13, border: '1.5px solid #ede9e0', borderRadius: 10, outline: 'none', fontFamily: "'DM Sans', sans-serif", color: '#1e1a14', resize: 'vertical', marginBottom: 20, boxSizing: 'border-box' }}
+      />
+
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button onClick={onCancel} style={{ flex: 1, padding: '11px 0', borderRadius: 12, border: '1.5px solid #ede9e0', background: '#fff', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 500, color: '#5a5346', cursor: 'pointer' }}>Batal</button>
+        <button onClick={onConfirm} disabled={resolving}
+          style={{ flex: 1, padding: '11px 0', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#2d5a3d,#4a9e6b)', fontFamily: "'DM Sans', sans-serif", fontSize: 14, fontWeight: 600, color: '#fff', cursor: resolving ? 'not-allowed' : 'pointer', opacity: resolving ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {resolving ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 0.7s linear infinite' }} /> : 'Simpan Tanggapan'}
+        </button>
+      </div>
+    </div>
+  </>
+);
+
 /* ══════════════════════════════════════════
    ADMIN PESANAN
 ══════════════════════════════════════════ */
@@ -398,7 +522,14 @@ const AdminPesanan = () => {
     }, 600); // tunggu data loaded
     setTimeout(() => setHighlightInvoice(null), 6000); 
   }, []);
-  const [showLogout, setShowLogout]       = useState(false);
+
+  const [showLogout, setShowLogout] = useState(false);
+  const [mainTab, setMainTab]             = useState('pesanan'); // 'pesanan' | 'komplain'
+  const [komplainList, setKomplainList]   = useState([]);
+  const [loadingKomplain, setLoadingKomplain] = useState(false);
+  const [selectedKomplain, setSelectedKomplain] = useState(null);
+  const [resolveForm, setResolveForm]     = useState({ status: 'Diproses', response: '' });
+  const [resolving, setResolving]         = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -418,6 +549,45 @@ const AdminPesanan = () => {
   };
 
   useEffect(() => { fetchOrders(); }, [activeStatus, dateFrom, dateTo]);
+
+  const fetchKomplain = async () => {
+    setLoadingKomplain(true);
+    try {
+      const { data } = await api.get('/orders/admin/komplain');
+      setKomplainList(Array.isArray(data) ? data : data?.data ?? []);
+    } catch {
+      toast.error('Gagal memuat daftar komplain');
+    } finally {
+      setLoadingKomplain(false);
+    }
+  };
+
+  useEffect(() => {
+    if (mainTab === 'komplain') fetchKomplain();
+  }, [mainTab]);
+
+  const openKomplain = (k) => {
+    setSelectedKomplain(k);
+    setResolveForm({ status: k.komplain_status === 'Menunggu' ? 'Diproses' : (k.komplain_status || 'Diproses'), response: k.admin_response || '' });
+  };
+
+  const handleResolveKomplain = async () => {
+    if (!selectedKomplain) return;
+    setResolving(true);
+    try {
+      await api.put(`/orders/${selectedKomplain.id}/komplain/resolve`, {
+        komplain_status: resolveForm.status,
+        admin_response: resolveForm.response,
+      });
+      toast.success('Tanggapan komplain berhasil disimpan');
+      setSelectedKomplain(null);
+      fetchKomplain();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Gagal menyimpan tanggapan');
+    } finally {
+      setResolving(false);
+    }
+  };
 
   const filtered = orders.filter(o =>
     o.customer_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -503,8 +673,26 @@ const AdminPesanan = () => {
           <main style={{ flex: 1, padding: '28px 32px', overflowY: 'auto' }}>
             <div style={{ background: '#fff', borderRadius: 18, border: '1px solid #ede9e0', overflow: 'hidden' }}>
 
+              {/* Tab utama: Pesanan / Komplain */}
+              <div style={{ display: 'flex', gap: 4, padding: '16px 20px 0' }}>
+                {[
+                  { key: 'pesanan', label: 'Semua Pesanan' },
+                  { key: 'komplain', label: `Komplain${komplainList.length ? ` (${komplainList.length})` : ''}` },
+                ].map(t => {
+                  const active = mainTab === t.key;
+                  return (
+                    <button key={t.key} className="tab-btn" onClick={() => setMainTab(t.key)}
+                      style={{ padding: '9px 16px', fontSize: 13, fontWeight: active ? 600 : 400, color: active ? '#fff' : '#5a5346', background: active ? '#2d5a3d' : '#f5f1eb', borderRadius: 10, transition: 'all 0.15s' }}>
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {mainTab === 'pesanan' ? (
+              <>
               {/* Filter row */}
-              <div style={{ padding: '16px 20px', borderBottom: '1px solid #f5f1eb', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid #f5f1eb', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginTop: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 200, maxWidth: 280, height: 36, background: '#faf9f6', border: '1px solid #ede9e0', borderRadius: 10, padding: '0 12px' }}>
                   <Search size={13} color="#c5bfb4" />
                   <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari nama atau ID pesanan..." style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: '#1e1a14', fontFamily: "'DM Sans', sans-serif" }} />
@@ -610,6 +798,10 @@ const AdminPesanan = () => {
                   </tbody>
                 </table>
               </div>
+              </>
+              ) : (
+                <KomplainTable list={komplainList} loading={loadingKomplain} onOpen={openKomplain} />
+              )}
             </div>
           </main>
         </div>
@@ -639,6 +831,17 @@ const AdminPesanan = () => {
       )}
 
       {showLogout && <LogoutModal onConfirm={handleLogout} onCancel={() => setShowLogout(false)} />}
+
+      {selectedKomplain && (
+        <KomplainModal
+          komplain={selectedKomplain}
+          form={resolveForm}
+          setForm={setResolveForm}
+          resolving={resolving}
+          onConfirm={handleResolveKomplain}
+          onCancel={() => setSelectedKomplain(null)}
+        />
+      )}
     </>
   );
 };
