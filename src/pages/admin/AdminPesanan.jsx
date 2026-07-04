@@ -564,17 +564,18 @@ const AdminPesanan = () => {
 
   useEffect(() => { fetchOrders(); }, [activeStatus, dateFrom, dateTo]);
 
-  const fetchKomplain = async () => {
-    setLoadingKomplain(true);
-    try {
-      const { data } = await api.get('/orders/admin/komplain');
-      setKomplainList(Array.isArray(data) ? data : data?.data ?? []);
-    } catch {
-      toast.error('Gagal memuat daftar komplain');
-    } finally {
-      setLoadingKomplain(false);
-    }
-  };
+ const fetchKomplain = async () => {
+  setLoadingKomplain(true);
+  try {
+    const { data } = await api.get('/orders/admin/komplain');
+    const list = Array.isArray(data) ? data : data?.data ?? [];
+    setKomplainList(list.filter(k => (k.komplain_status || 'Menunggu') !== 'Selesai'));
+  } catch {
+    toast.error('Gagal memuat daftar komplain');
+  } finally {
+    setLoadingKomplain(false);
+  }
+};
 
   useEffect(() => {
     if (mainTab === 'komplain') fetchKomplain();
