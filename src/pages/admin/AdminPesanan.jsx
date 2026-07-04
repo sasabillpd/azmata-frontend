@@ -174,8 +174,12 @@ const KomplainTable = ({ list, loading, onOpen }) => (
               {k.komplain_created_at ? new Date(k.komplain_created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
             </td>
             <td style={{ padding: '13px 20px' }}>
+            {(k.komplain_status || 'Menunggu') === 'Selesai' ? (
+              <span style={{ fontSize: 12, color: '#b5a99a' }}>Sudah ditanggapi</span>
+            ) : (
               <button onClick={() => onOpen(k)} style={{ border: 'none', background: 'none', padding: 0, fontSize: 12, color: '#2d5a3d', fontWeight: 500, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>Tanggapi</button>
-            </td>
+            )}
+          </td>
           </tr>
         ))}
       </tbody>
