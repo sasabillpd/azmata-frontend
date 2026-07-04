@@ -13,11 +13,13 @@ import {
 /* ── helpers ── */
 const formatRp = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
 
-const REJECT_REASONS = [
+const REJECT_REASONS_PENOLAKAN = [
   'Bukti transfer tidak jelas / buram',
   'Nominal transfer tidak sesuai',
   'Bukti transfer sudah kadaluarsa',
   'Rekening tujuan tidak sesuai',
+];
+const REJECT_REASONS_REFUND = [
   'Stok produk habis',
   'Lainnya',
 ];
@@ -180,22 +182,26 @@ const AdminKonfirmasiBayar = () => {
 
   const getAlasan = () =>
     (rejectForm.reject_reason === 'Lainnya' ? rejectForm.custom_reason : rejectForm.reject_reason).trim();
+  const getTipe = () =>
+  REJECT_REASONS_REFUND.includes(rejectForm.reject_reason) ? 'refund' : 'penolakan';
 
   const handleReject = async () => {
-    const alasan = getAlasan();
-    if (!alasan) { toast.error('Pilih atau isi alasan penolakan'); return; }
-    setProc(rejectTarget.order_id);
-    try {
-      const fd = new FormData();
-      fd.append('reject_reason', alasan);
-      await api.put(`/payments/${rejectTarget.order_id}/reject`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-      toast.success('Pembayaran ditolak & pengajuan refund dikirim ke super admin');
-      setShowReject(false);
-      fetchPayments();
-      fetchRefunds();
-    } catch (err) { toast.error(err.response?.data?.message || 'Gagal menolak pembayaran'); }
-    finally { setProc(null); }
-  };
+  const alasan = getAlasan();
+  const tipe   = getTipe();
+  if (!alasan) { toast.error('Pilih atau isi alasan penolakan'); return; }
+  setProc(rejectTarget.order_id);
+  try {
+    const fd = new FormData();
+    fd.append('reject_reason', alasan);
+    fd.append('type', tipe);
+    await api.put(`/payments/${rejectTarget.order_id}/reject`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    toast.success(tipe === 'refund' ? 'Pembayaran ditolak & pengajuan refund dikirim ke super admin' : 'Pembayaran ditolak, customer diminta upload ulang');
+    setShowReject(false);
+    fetchPayments();
+    fetchRefunds();
+  } catch (err) { toast.error(err.response?.data?.message || 'Gagal menolak pembayaran'); }
+  finally { setProc(null); }
+};
 
   /* ── konfirmasi refund (super admin) ── */
   const openConfirmRefund = (refund) => {
@@ -604,15 +610,19 @@ const AdminKonfirmasiBayar = () => {
                 <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#5a5346', marginBottom: 10 }}>
                   Alasan penolakan <span style={{ color: '#e74c3c' }}>*</span>
                 </label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {REJECT_REASONS.map(reason => {
+
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#b91c1c', letterSpacing: '0.6px', textTransform: 'uppercase', margin: '0 0 6px' }}>
+                  Ditolak (customer upload ulang)
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+                  {REJECT_REASONS_PENOLAKAN.map(reason => {
                     const active = rejectForm.reject_reason === reason;
                     return (
                       <div key={reason} onClick={() => setRejectForm(f => ({ ...f, reject_reason: reason }))} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${active ? '#f5b8b1' : '#ede9e0'}`, background: active ? '#fff5f5' : '#fff', transition: 'all 0.15s' }}
                         onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#faf9f6'; }}
                         onMouseLeave={e => { if (!active) e.currentTarget.style.background = '#fff'; }}
                       >
-                        <div style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? '#e74c3c' : '#d4cfc8'}`, background: active ? '#e74c3c' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}>
+                        <div style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? '#e74c3c' : '#d4cfc8'}`, background: active ? '#e74c3c' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {active && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />}
                         </div>
                         <span style={{ fontSize: 13, color: '#5a5346' }}>{reason}</span>
@@ -620,6 +630,27 @@ const AdminKonfirmasiBayar = () => {
                     );
                   })}
                 </div>
+
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#6d28d9', letterSpacing: '0.6px', textTransform: 'uppercase', margin: '0 0 6px' }}>
+                  Refund (dana dikembalikan)
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {REJECT_REASONS_REFUND.map(reason => {
+                    const active = rejectForm.reject_reason === reason;
+                    return (
+                      <div key={reason} onClick={() => setRejectForm(f => ({ ...f, reject_reason: reason }))} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${active ? '#ddd6fe' : '#ede9e0'}`, background: active ? '#f5f3ff' : '#fff', transition: 'all 0.15s' }}
+                        onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#faf9f6'; }}
+                        onMouseLeave={e => { if (!active) e.currentTarget.style.background = '#fff'; }}
+                      >
+                        <div style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? '#7c3aed' : '#d4cfc8'}`, background: active ? '#7c3aed' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {active && <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />}
+                        </div>
+                        <span style={{ fontSize: 13, color: '#5a5346' }}>{reason}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
                 {rejectForm.reject_reason === 'Lainnya' && (
                   <textarea value={rejectForm.custom_reason} onChange={e => setRejectForm(f => ({ ...f, custom_reason: e.target.value }))} rows={2} placeholder="Tulis alasan penolakan..." className="kb-input"
                     style={{ ...inputStyle, height: 'auto', padding: '10px 12px', marginTop: 10, resize: 'none', lineHeight: 1.6 }} />
@@ -627,7 +658,7 @@ const AdminKonfirmasiBayar = () => {
               </div>
 
               {/* Info rekening — pakai fallback ke data users kalau payments belum ter-update */}
-              {(() => {
+              {getTipe() === 'refund' && (() => {
                 const rek = rejectTarget.bank_account_number || rejectTarget.u_bank_account_number;
                 const bank = rejectTarget.bank_name || rejectTarget.u_bank_name;
                 const nama = rejectTarget.bank_account_name || rejectTarget.u_bank_account_name;
@@ -652,13 +683,14 @@ const AdminKonfirmasiBayar = () => {
               })()}
 
               {/* Info super admin proses */}
+              {getTipe() === 'refund' && (
               <div style={{ background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 10, padding: '12px 14px', display: 'flex', gap: 10 }}>
                 <BadgeCheck size={15} color="#7c3aed" style={{ flexShrink: 0, marginTop: 1 }} />
                 <p style={{ fontSize: 12, color: '#6d28d9', margin: 0, lineHeight: 1.6 }}>
                   Upload bukti transfer refund dilakukan oleh <strong>super admin</strong>. Setelah kamu klik "Tolak & Ajukan Refund", pengajuan akan otomatis masuk ke antrian super admin.
                 </p>
               </div>
-
+              )}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingTop: 14, borderTop: '1px solid #f5f1eb' }}>
                 <button onClick={() => setShowReject(false)} style={{ width: '100%', height: 42, borderRadius: 12, border: '1.5px solid #ede9e0', background: '#fff', fontSize: 13, color: '#5a5346', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
                   onMouseEnter={e => e.currentTarget.style.background = '#faf9f6'}
@@ -666,11 +698,13 @@ const AdminKonfirmasiBayar = () => {
                 >Batal</button>
 
                 <button onClick={handleReject} disabled={processing === rejectTarget.order_id} style={{ width: '100%', height: 42, borderRadius: 12, border: 'none', background: 'linear-gradient(135deg,#c0392b,#e74c3c)', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: processing === rejectTarget.order_id ? 0.6 : 1 }}>
-                  {processing === rejectTarget.order_id
-                    ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 0.7s linear infinite' }} />
-                    : <><XCircle size={13} /> Tolak & Ajukan Refund ke Super Admin</>
-                  }
-                </button>
+                {processing === rejectTarget.order_id
+                  ? <div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid #fff', borderTopColor: 'transparent', animation: 'spin 0.7s linear infinite' }} />
+                  : getTipe() === 'refund'
+                    ? <><XCircle size={13} /> Tolak & Ajukan Refund ke Super Admin</>
+                    : <><XCircle size={13} /> Tolak & Minta Upload Ulang</>
+                }
+              </button>
               </div>
             </div>
           </div>
