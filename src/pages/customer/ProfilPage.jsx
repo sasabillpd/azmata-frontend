@@ -538,9 +538,19 @@ const ProfilPage = () => {
                             <div style={{ margin: '0 20px 12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                               <p style={{ fontFamily: ff.sans, fontSize: 11, fontWeight: 600, color: '#dc2626', margin: 0 }}>Pembayaran ditolak admin</p>
                               {order.reject_reason && <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#ef4444', margin: 0 }}>Alasan: {order.reject_reason}</p>}
-                              {order.refund_bank
-                                ? <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#6b6357', margin: 0 }}>Refund ke: <strong>{order.refund_bank}</strong> {order.refund_rekening} a.n. {order.refund_atas_nama}</p>
-                                : <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#b45309', margin: 0 }}>⚠ Lengkapi rekening bank di menu <button onClick={() => handleMenu('rekening')} style={{ color: green, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontFamily: ff.sans, fontSize: 12, padding: 0 }}>Rekening bank</button> untuk proses refund.</p>}
+
+                              {order.refund_status ? (
+                                /* ── Tipe REFUND: order dibatalkan, dana dikembalikan ── */
+                                order.refund_bank
+                                  ? <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#6b6357', margin: 0 }}>Refund ke: <strong>{order.refund_bank}</strong> {order.refund_rekening} a.n. {order.refund_atas_nama}</p>
+                                  : <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#b45309', margin: 0 }}>⚠ Lengkapi rekening bank di menu <button onClick={() => handleMenu('rekening')} style={{ color: green, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontFamily: ff.sans, fontSize: 12, padding: 0 }}>Rekening bank</button> untuk proses refund.</p>
+                              ) : (
+                                /* ── Tipe PENOLAKAN: minta upload ulang bukti transfer ── */
+                                <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#6b6357', margin: 0 }}>
+                                  Silakan upload ulang bukti transfer yang sesuai lewat tombol <strong>"Bayar sekarang"</strong> di bawah.
+                                </p>
+                              )}
+
                               {order.refund_proof && (
                                 <div>
                                   <p style={{ fontFamily: ff.sans, fontSize: 11, color: '#9a9080', margin: '4px 0' }}>Bukti refund dari admin:</p>
