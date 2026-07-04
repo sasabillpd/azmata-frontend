@@ -575,10 +575,17 @@ const handleSubmitKomplain = async () => {
                             </div>
                           )}
 
-                          {order.payment_status === 'Ditolak' && (
+                          {order.payment_status === 'Ditolak' && (() => {
+                            const isKomplainRefund = order.cancel_reason && order.cancel_reason.startsWith('Komplain:');
+                            return (
                             <div style={{ margin: '0 20px 12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                              <p style={{ fontFamily: ff.sans, fontSize: 11, fontWeight: 600, color: '#dc2626', margin: 0 }}>Pembayaran ditolak admin</p>
-                              {order.reject_reason && <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#ef4444', margin: 0 }}>Alasan: {order.reject_reason}</p>}
+                              <p style={{ fontFamily: ff.sans, fontSize: 11, fontWeight: 600, color: '#dc2626', margin: 0 }}>
+                                {isKomplainRefund ? 'Komplain disetujui — refund diproses' : 'Pembayaran ditolak admin'}
+                              </p>
+                              {isKomplainRefund
+                                ? <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#ef4444', margin: 0 }}>Alasan refund: {order.komplain_reason}</p>
+                                : order.reject_reason && <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#ef4444', margin: 0 }}>Alasan: {order.reject_reason}</p>
+                              }
 
                               {order.refund_status ? (
                                 /* ── Tipe REFUND: order dibatalkan, dana dikembalikan ── */
@@ -599,7 +606,8 @@ const handleSubmitKomplain = async () => {
                                 </div>
                               )}
                             </div>
-                          )}
+                            );
+                          })()}
                             {order.status === 'Dikirim' && order.kurir && (
                               <div style={{ margin: '0 20px 12px', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: 12, padding: '12px 16px' }}>
                                 <p style={{ fontFamily: ff.sans, fontSize: 11, fontWeight: 600, color: '#7c3aed', margin: '0 0 8px', letterSpacing: '0.5px', textTransform: 'uppercase' }}>🚚 Info Pengiriman</p>
@@ -616,7 +624,7 @@ const handleSubmitKomplain = async () => {
                               </div>
                             )}
 
-                            {order.has_komplain && (
+                            {order.has_komplain && !(order.payment_status === 'Ditolak' && order.cancel_reason?.startsWith('Komplain:')) && (
                               <div style={{ margin: '0 20px 12px', background: '#fff8ee', border: '1px solid #fde68a', borderRadius: 12, padding: '12px 16px' }}>
                                 <p style={{ fontFamily: ff.sans, fontSize: 11, fontWeight: 600, color: '#b45309', margin: '0 0 3px' }}>
                                   ⚠ Komplain: {order.komplain_reason}
@@ -1033,6 +1041,7 @@ const handleSubmitKomplain = async () => {
             </div>
           </div>
         )}
+
 
         {/* ── LOGOUT MODAL ── */}
         {showLogoutModal && (
