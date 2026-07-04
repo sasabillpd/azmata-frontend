@@ -378,9 +378,9 @@ const CheckoutPage = () => {
                             <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 15, fontWeight: 600, color: '#1e1a14', margin: '0 0 4px' }}>{item.name}</p>
                             <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#9a9080', margin: '0 0 10px' }}>per toples {item.weight || 350}gr</p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                              <button onClick={() => updateQty(item.id, 1)} style={{ width: 28, height: 28, borderRadius: 8, border: '1.5px solid #d5e8dc', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2d5a3d' }}><Plus size={12} /></button>
-                              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, minWidth: 20, textAlign: 'center' }}>{item.qty}</span>
                               <button onClick={() => updateQty(item.id, -1)} style={{ width: 28, height: 28, borderRadius: 8, border: '1.5px solid #d5e8dc', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2d5a3d' }}><Minus size={12} /></button>
+                              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, fontWeight: 500, minWidth: 20, textAlign: 'center' }}>{item.qty}</span>
+                              <button onClick={() => updateQty(item.id, 1)} style={{ width: 28, height: 28, borderRadius: 8, border: '1.5px solid #d5e8dc', background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2d5a3d' }}><Plus size={12} /></button>
                               {!fromBuyNow && !fromDrawer && (
                                 <button onClick={() => removeItem(item.id)} style={{ fontSize: 12, color: '#e57373', background: 'none', border: 'none', cursor: 'pointer', marginLeft: 4, fontFamily: "'DM Sans',sans-serif" }}>hapus</button>
                               )}
