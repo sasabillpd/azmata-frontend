@@ -186,7 +186,48 @@ const ProfilPage = () => {
   const [ordersFetched, setOrdersFetched] = useState(false);
   const [orderFilter, setOrderFilter] = useState('Semua');
   const [cancelModal, setCancelModal] = useState(null);
-  const [confirmModal, setConfirmModal] = useState(null); 
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [komplainModal, setKomplainModal] = useState(null); // { id }
+const [komplainForm, setKomplainForm]   = useState({ reason: '', foto: null, preview: null });
+const [submittingKomplain, setSubmittingKomplain] = useState(false);
+
+const KOMPLAIN_REASONS = [
+  'Barang belum sampai',
+  'Barang rusak',
+  'Barang tidak sesuai pesanan',
+  'Jumlah barang tidak lengkap',
+];
+const REASON_NEEDS_FOTO = ['Barang rusak', 'Barang tidak sesuai pesanan', 'Jumlah barang tidak lengkap'];
+
+const handleKomplainFoto = (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  if (!f.type.startsWith('image/')) { toast.error('Hanya foto yang diizinkan'); return; }
+  if (f.size > 5 * 1024 * 1024) { toast.error('Maks. 5MB'); return; }
+  setKomplainForm(f0 => ({ ...f0, foto: f, preview: URL.createObjectURL(f) }));
+};
+
+const handleSubmitKomplain = async () => {
+  if (!komplainForm.reason) { toast.error('Pilih alasan komplain dulu'); return; }
+  if (REASON_NEEDS_FOTO.includes(komplainForm.reason) && !komplainForm.foto) {
+    toast.error('Upload foto bukti untuk alasan ini'); return;
+  }
+  setSubmittingKomplain(true);
+  try {
+    const fd = new FormData();
+    fd.append('reason', komplainForm.reason);
+    if (komplainForm.foto) fd.append('foto', komplainForm.foto);
+    await api.post(`/orders/${komplainModal.id}/komplain`, fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+    toast.success('Komplain berhasil dikirim');
+    setKomplainModal(null);
+    setKomplainForm({ reason: '', foto: null, preview: null });
+    fetchOrders(); // ganti sesuai nama fungsi refresh order kamu
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Gagal mengirim komplain');
+  } finally {
+    setSubmittingKomplain(false);
+  }
+};
   const [cancelingId, setCancelingId] = useState(null);
 
   // ALAMAT
@@ -574,6 +615,17 @@ const ProfilPage = () => {
                                 </a>
                               </div>
                             )}
+
+                            {order.has_komplain && (
+                              <div style={{ margin: '0 20px 12px', background: '#fff8ee', border: '1px solid #fde68a', borderRadius: 12, padding: '12px 16px' }}>
+                                <p style={{ fontFamily: ff.sans, fontSize: 11, fontWeight: 600, color: '#b45309', margin: '0 0 3px' }}>
+                                  ⚠ Komplain: {order.komplain_reason}
+                                </p>
+                                <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#92400e', margin: 0 }}>
+                                  Status: {order.komplain_status === 'Menunggu' ? 'Menunggu ditinjau tim kami' : order.komplain_status}
+                                </p>
+                              </div>
+                            )}
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 20px', borderTop: `1px solid ${border}` }}>
                             <span style={{ fontFamily: ff.sans, fontSize: 13, color: '#6b6357' }}>
                               Total: <span style={{ fontFamily: ff.serif, fontWeight: 700, color: '#1e1a14' }}>Rp {Number(order.total_price).toLocaleString('id-ID')}</span>
@@ -593,18 +645,36 @@ const ProfilPage = () => {
                               </button>
                             )}
 
-                            {order.status === 'Dikirim' && (
-                              <button
-                                onClick={() => setConfirmModal({ id: order.id })}
-                                style={{
-                                  fontFamily: ff.sans, fontSize: 12, fontWeight: 500,
-                                  color: '#fff', background: green,
-                                  border: 'none', borderRadius: 10,
-                                  padding: '6px 16px', cursor: 'pointer'
-                                }}>
-                                Konfirmasi Terima Barang
-                              </button>
-                            )}
+                          {order.status === 'Dikirim' && !order.has_komplain && (
+                          <>
+                            <button
+                              onClick={() => setConfirmModal({ id: order.id })}
+                              style={{
+                                fontFamily: ff.sans, fontSize: 12, fontWeight: 500,
+                                color: '#fff', background: green,
+                                border: 'none', borderRadius: 10,
+                                padding: '6px 16px', cursor: 'pointer'
+                              }}>
+                              Konfirmasi Terima Barang
+                            </button>
+                            <button
+                              onClick={() => setKomplainModal({ id: order.id })}
+                              style={{
+                                fontFamily: ff.sans, fontSize: 12, fontWeight: 500,
+                                color: '#dc2626', background: '#fff',
+                                border: '1.5px solid #fca5a5', borderRadius: 10,
+                                padding: '6px 16px', cursor: 'pointer'
+                              }}>
+                              Laporkan Masalah
+                            </button>
+                          </>
+                        )}
+
+                        {order.has_komplain && (
+                          <div style={{ fontFamily: ff.sans, fontSize: 11, color: '#b45309', fontStyle: 'italic' }}>
+                            Komplain sedang diproses tim kami
+                          </div>
+                        )}
 
                             {order.status === 'Menunggu Konfirmasi' && (
                               <div style={{ fontFamily: ff.sans, fontSize: 11, color: '#9a9080', fontStyle: 'italic' }}>
@@ -871,6 +941,93 @@ const ProfilPage = () => {
                   }}
                   style={{ flex: 1, height: 42, borderRadius: 10, border: 'none', background: green, color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: ff.sans }}>
                   Ya, sudah diterima
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Modal konfirmasi terima barang */}
+        {confirmModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+            <div style={{ background: '#fff', borderRadius: 20, padding: 28, maxWidth: 400, width: '100%', boxShadow: '0 8px 40px rgba(0,0,0,0.15)' }}>
+              <p style={{ fontFamily: ff.serif, fontSize: 17, fontWeight: 600, color: '#1e1a14', margin: '0 0 10px' }}>Konfirmasi Terima Barang</p>
+              <p style={{ fontFamily: ff.sans, fontSize: 13, color: '#6b6357', margin: '0 0 24px', lineHeight: 1.6 }}>
+                Pastikan kamu sudah menerima barang dalam kondisi baik. Setelah dikonfirmasi, pesanan tidak bisa dibatalkan.
+              </p>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => setConfirmModal(null)}
+                  style={{ flex: 1, height: 42, borderRadius: 10, border: '1.5px solid #e0ddd6', background: '#fff', fontSize: 13, color: '#6b6357', cursor: 'pointer', fontFamily: ff.sans }}>
+                  Batal
+                </button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await api.patch(`/orders/${confirmModal.id}/confirm-received`);
+                      toast.success('Pesanan dikonfirmasi selesai!');
+                      setConfirmModal(null);
+                      const res = await api.get('/orders/my-orders');
+                      setOrders(Array.isArray(res.data) ? res.data : res.data?.data ?? []);
+                    } catch {
+                      toast.error('Gagal mengkonfirmasi pesanan');
+                    }
+                  }}
+                  style={{ flex: 1, height: 42, borderRadius: 10, border: 'none', background: green, color: '#fff', fontSize: 13, fontWeight: 500, cursor: 'pointer', fontFamily: ff.sans }}>
+                  Ya, sudah diterima
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Laporkan Masalah / Komplain */}
+        {komplainModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+            <div style={{ background: '#fff', borderRadius: 20, width: '100%', maxWidth: 440, padding: 24, boxShadow: '0 24px 60px rgba(30,26,20,0.18)', fontFamily: ff.sans }}>
+              <p style={{ fontFamily: ff.serif, fontSize: 18, fontWeight: 700, color: '#1e1a14', margin: '0 0 4px' }}>Laporkan Masalah</p>
+              <p style={{ fontFamily: ff.sans, fontSize: 12, color: '#9a9080', margin: '0 0 18px' }}>Ceritakan kendala pesanan kamu, tim kami akan segera menindaklanjuti.</p>
+
+              <p style={{ fontFamily: ff.sans, fontSize: 12, fontWeight: 500, color: '#3a3530', margin: '0 0 8px' }}>Pilih alasan:</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
+                {KOMPLAIN_REASONS.map(reason => {
+                  const active = komplainForm.reason === reason;
+                  return (
+                    <div key={reason} onClick={() => setKomplainForm(f => ({ ...f, reason }))}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 10, cursor: 'pointer', border: `1.5px solid ${active ? '#fca5a5' : border}`, background: active ? '#fff5f5' : '#fff' }}>
+                      <div style={{ width: 15, height: 15, borderRadius: '50%', border: `2px solid ${active ? '#dc2626' : '#d4cfc8'}`, background: active ? '#dc2626' : 'transparent', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {active && <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#fff' }} />}
+                      </div>
+                      <span style={{ fontFamily: ff.sans, fontSize: 13, color: '#3a3530' }}>{reason}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {REASON_NEEDS_FOTO.includes(komplainForm.reason) && (
+                <div style={{ marginBottom: 16 }}>
+                  <p style={{ fontFamily: ff.sans, fontSize: 12, fontWeight: 500, color: '#3a3530', margin: '0 0 8px' }}>Upload foto bukti:</p>
+                  {komplainForm.preview ? (
+                    <div style={{ position: 'relative' }}>
+                      <img src={komplainForm.preview} alt="preview" style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 10, border: `1px solid ${border}` }} />
+                      <button onClick={() => setKomplainForm(f => ({ ...f, foto: null, preview: null }))}
+                        style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: '50%', background: '#dc2626', border: 'none', color: '#fff', cursor: 'pointer' }}>✕</button>
+                    </div>
+                  ) : (
+                    <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 90, border: '2px dashed #fca5a5', borderRadius: 10, cursor: 'pointer', fontFamily: ff.sans, fontSize: 12, color: '#dc2626' }}>
+                      Klik untuk upload foto
+                      <input type="file" accept="image/*" style={{ display: 'none' }} onChange={handleKomplainFoto} />
+                    </label>
+                  )}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button onClick={() => { setKomplainModal(null); setKomplainForm({ reason: '', foto: null, preview: null }); }}
+                  style={{ flex: 1, height: 42, borderRadius: 10, border: '1.5px solid #e0ddd6', background: '#fff', fontFamily: ff.sans, fontSize: 13, color: '#6b6357', cursor: 'pointer' }}>
+                  Batal
+                </button>
+                <button onClick={handleSubmitKomplain} disabled={submittingKomplain}
+                  style={{ flex: 1, height: 42, borderRadius: 10, border: 'none', background: '#dc2626', color: '#fff', fontFamily: ff.sans, fontSize: 13, fontWeight: 500, cursor: 'pointer', opacity: submittingKomplain ? 0.6 : 1 }}>
+                  {submittingKomplain ? 'Mengirim...' : 'Kirim Laporan'}
                 </button>
               </div>
             </div>
